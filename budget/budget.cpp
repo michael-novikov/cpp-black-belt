@@ -142,12 +142,15 @@ template <typename Data, typename BulkOperation>
 class SummingSegmentTree;
 
 template <typename Data, typename BulkOperation>
-using SummingSegmentTreeHolder = std::shared_ptr<SummingSegmentTree<Data, BulkOperation>>;
+using SummingSegmentTreeHolder = shared_ptr<SummingSegmentTree<Data, BulkOperation>>;
+
+template <typename Data, typename BulkOperation>
+using SummingSegmentTreeReferencer = SummingSegmentTree<Data, BulkOperation>*;
 
 template <typename Data, typename BulkOperation>
 class BaseBulkOperation {
 public:
-  using TreeHolder = SummingSegmentTreeHolder<Data, BulkOperation>;
+  using TreeHolder = SummingSegmentTreeReferencer<Data, BulkOperation>;
   BaseBulkOperation(const TreeHolder& tree) : tree_(tree) {}
 private:
   TreeHolder tree_;
@@ -203,8 +206,8 @@ private:
   struct Node;
 
   struct Node {
-    Node* left;
-    Node* right;
+    std::unique_ptr<Node> left;
+    std::unique_ptr<Node> right;
     IndexSegment segment;
     Data data;
     BulkOperation postponed_bulk_operation;
@@ -212,22 +215,22 @@ private:
 
   std::unique_ptr<Node> root_;
 
-  static Node* Build(IndexSegment segment) {
+  static std::unique_ptr<Node> Build(IndexSegment segment) {
     if (segment.empty()) {
       return nullptr;
     } else if (segment.length() == 1) {
-      return new Node{
+      return unique_ptr<Node>(new Node{
         .left = nullptr,
         .right = nullptr,
         .segment = segment,
-      };
+      });
     } else {
       const size_t middle = segment.left + segment.length() / 2;
-      return new Node{
+      return unique_ptr<Node>(new Node{
         .left = Build({segment.left, middle}),
         .right = Build({middle, segment.right}),
         .segment = segment,
-      };
+      });
     }
   }
 
@@ -241,14 +244,14 @@ private:
         return visitor.ProcessFull(node);
       } else {
         if constexpr (is_void_v<typename Visitor::ResultType>) {
-          TraverseWithQuery(node->left, query_segment, visitor);
-          TraverseWithQuery(node->right, query_segment, visitor);
+          TraverseWithQuery(node->left.get(), query_segment, visitor);
+          TraverseWithQuery(node->right.get(), query_segment, visitor);
           return visitor.ProcessPartial(node, query_segment);
         } else {
           return visitor.ProcessPartial(
               node, query_segment,
-              TraverseWithQuery(node->left, query_segment, visitor),
-              TraverseWithQuery(node->right, query_segment, visitor)
+              TraverseWithQuery(node->left.get(), query_segment, visitor),
+              TraverseWithQuery(node->right.get(), query_segment, visitor)
           );
         }
       }
@@ -296,7 +299,7 @@ private:
   };
 
   static void PropagateBulkOperation(Node* node) {
-    for (auto* child_ptr : {node->left, node->right}) {
+    for (auto* child_ptr : {node->left.get(), node->right.get()}) {
       if (child_ptr) {
         child_ptr->postponed_bulk_operation.CombineWith(node->postponed_bulk_operation);
         child_ptr->data = node->postponed_bulk_operation.Collapse(child_ptr->data, child_ptr->segment);
@@ -363,14 +366,19 @@ IndexSegment MakeDateSegment(const Date& date_from, const Date& date_to) {
 
 class BudgetManager {
 public:
-  using TreeHolder = SummingSegmentTreeHolder<MoneyState, BulkLinearUpdater>;
+  using TreeHolder = SummingSegmentTreeReferencer<MoneyState, BulkLinearUpdater>;
 
-  BudgetManager() : tree_(new SummingSegmentTree<MoneyState, BulkLinearUpdater>(DAY_COUNT)) {}
-  const TreeHolder& GetTree() const {
-    return tree_;
+  BudgetManager() : tree_(new SummingSegmentTree<MoneyState, BulkLinearUpdater>(DAY_COUNT)) {
+      referencer = tree_.get();
   }
+  const auto& GetTree() const {
+    return referencer;
+  }
+
 private:
-  TreeHolder tree_;
+  unique_ptr<SummingSegmentTree<MoneyState, BulkLinearUpdater>> tree_;
+  TreeHolder referencer;
+
 };
 
 
