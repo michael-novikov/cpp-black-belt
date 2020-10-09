@@ -67,7 +67,6 @@ namespace Graph {
 
     while (!vertices_by_weight.empty()) {
       const auto min_vertex_it = vertices_by_weight.begin();
-      vertices_by_weight.erase(min_vertex_it);
       done_vertices.insert(min_vertex_it->second);
 
       for (const EdgeId edge_id : graph_.GetIncidentEdges(min_vertex_it->second)) {
@@ -84,6 +83,7 @@ namespace Graph {
           vertices_by_weight.emplace(routes_internal_data_[edge.to]->weight, edge.to);
         }
       }
+      vertices_by_weight.erase(min_vertex_it);
     }
 
     const auto& route_internal_data = routes_internal_data_[to];
