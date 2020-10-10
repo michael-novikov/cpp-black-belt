@@ -1,25 +1,33 @@
 #include <iostream>
 #include <cstdint>
+#include <limits>
+#include <optional>
 
-using namespace std;
+using SignedNumber = int64_t;
 
-bool IntegerSumOverflow(double lhs, double rhs) {
-    auto lhs_u = lhs < 0 ? -lhs : lhs;
-    auto rhs_u = rhs < 0 ? -rhs : rhs;
-    auto sum_u = lhs_u + rhs_u;
-
-    return sum_u > static_cast<double>(INT64_MAX);
+template <typename T>
+std::optional<T> add(T lhs, T rhs) {
+    if (lhs > 0 && rhs > 0) {
+        if (lhs > std::numeric_limits<T>::max() - rhs) {
+            return std::nullopt;
+        }
+    } else if (lhs < 0 && rhs < 0) {
+        if (lhs < std::numeric_limits<T>::min() - rhs) {
+            return std::nullopt;
+        }
+    }
+    
+    return lhs + rhs;
 }
 
 int main() {
-    int64_t lhs, rhs;
+    SignedNumber lhs, rhs;
 
-    cin >> lhs >> rhs;
+    std::cin >> lhs >> rhs;
 
-    if (IntegerSumOverflow(lhs, rhs)) {
-        cout << "Overflow!" << endl;
-        return -1;
+    if (auto sum = add(lhs, rhs)) {
+        std::cout << sum.value() << std::endl;
+    } else {
+        std::cout << "Overflow!" << std::endl;
     }
-
-    cout << lhs + rhs << endl;
 }
