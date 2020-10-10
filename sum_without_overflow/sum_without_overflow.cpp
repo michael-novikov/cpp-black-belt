@@ -1,7 +1,5 @@
-#include <_types/_uint64_t.h>
 #include <iostream>
 #include <cstdint>
-#include <sys/_types/_int64_t.h>
 
 using namespace std;
 
