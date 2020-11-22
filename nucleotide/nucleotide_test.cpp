@@ -1,3 +1,4 @@
+#include "nucleotide.h"
 #include "test_runner.h"
 
 void TestSize() {
@@ -12,7 +13,7 @@ void TestCompressDecompress() {
   source.ChromosomeNum = 48;
   source.GeneNum = 1'000;
   source.IsMarked = true;
-  source.ServiceInfo = 'Test';
+  source.ServiceInfo = 'T';
 
   CompactNucleotide compressedSource = Compress(source);
   Nucleotide decompressedSource = Decompress(compressedSource);

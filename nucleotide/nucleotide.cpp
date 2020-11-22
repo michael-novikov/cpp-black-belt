@@ -1,19 +1,4 @@
-#include <cstddef>
-
-
-struct Nucleotide {
-  char Symbol;
-  size_t Position;
-  int ChromosomeNum;
-  int GeneNum;
-  bool IsMarked;
-  char ServiceInfo;
-};
-
-
-struct CompactNucleotide {
-  // ...
-};
+#include "nucleotide.h"
 
 
 bool operator == (const Nucleotide& lhs, const Nucleotide& rhs) {
@@ -27,10 +12,24 @@ bool operator == (const Nucleotide& lhs, const Nucleotide& rhs) {
 
 
 CompactNucleotide Compress(const Nucleotide& n) {
-  // ...
+  return {
+    .Symbol = symbol_index.at(n.Symbol),
+    .Position = n.Position,
+    .ChromosomeNum = static_cast<uint64_t>(n.ChromosomeNum),
+    .GeneNum = static_cast<uint64_t>(n.GeneNum),
+    .IsMarked = static_cast<uint64_t>(n.IsMarked ? 1 : 0),
+    .ServiceInfo = static_cast<uint64_t>(n.ServiceInfo),
+  };
 };
 
 
 Nucleotide Decompress(const CompactNucleotide& cn) {
-  // ...
+  return {
+    .Symbol = symbols[cn.Symbol],
+    .Position = cn.Position,
+    .ChromosomeNum = cn.ChromosomeNum,
+    .GeneNum = cn.GeneNum,
+    .IsMarked = (cn.IsMarked == 1),
+    .ServiceInfo = static_cast<char>(cn.ServiceInfo),
+  };
 }
