@@ -38,5 +38,6 @@
 build/
 
 # Project temp files
+.cache/
 .clangd/
 compile_commands.json
