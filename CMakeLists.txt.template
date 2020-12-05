@@ -9,7 +9,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 set(this_project THIS_PROJECT_NAME)
 
-set(utility ~/workspace/cpp-brown-belt/utility)
+set(utility ../utility)
 include_directories(${utility})
 
 project(${this_project} CXX)

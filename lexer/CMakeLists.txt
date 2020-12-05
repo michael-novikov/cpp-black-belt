@@ -15,10 +15,12 @@ include_directories(${utility})
 project(${this_project} CXX)
 
 set(headers
+  string_utils.h
   lexer.h
   )
 
 set(sources
+  string_utils.cpp
   lexer.cpp
   lexer_test.cpp
   )
