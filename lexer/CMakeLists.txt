@@ -5,9 +5,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_ENABLE_EXPORTS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
-set(this_project THIS_PROJECT_NAME)
+set(this_project lexer)
 
 set(utility ../utility)
 include_directories(${utility})
@@ -15,10 +15,14 @@ include_directories(${utility})
 project(${this_project} CXX)
 
 set(headers
+  string_utils.h
+  lexer.h
   )
 
 set(sources
-  ${this_project}.cpp
+  string_utils.cpp
+  lexer.cpp
+  lexer_test.cpp
   )
 
 add_executable(${this_project} ${sources} ${headers})
