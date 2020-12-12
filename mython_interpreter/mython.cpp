@@ -2,7 +2,7 @@
 #include "object_holder.h"
 #include "statement.h"
 #include "lexer.h"
-#include "parse.h"
+//#include "parse.h"
 
 #include <test_runner.h>
 
@@ -19,13 +19,13 @@ using namespace std;
 void TestAll();
 
 void RunMythonProgram(istream& input, ostream& output) {
-  Ast::Print::SetOutputStream(output);
-
-  Parse::Lexer lexer(input);
-  auto program = ParseProgram(lexer);
-
-  Runtime::Closure closure;
-  program->Execute(closure);
+//  Ast::Print::SetOutputStream(output);
+//
+//  Parse::Lexer lexer(input);
+//  auto program = ParseProgram(lexer);
+//
+//  Runtime::Closure closure;
+//  program->Execute(closure);
 }
 
 int main() {
@@ -122,10 +122,10 @@ void TestAll() {
   Runtime::RunObjectsTests(tr);
   Ast::RunUnitTests(tr);
   Parse::RunLexerTests(tr);
-  TestParseProgram(tr);
+  //TestParseProgram(tr);
 
-  RUN_TEST(tr, TestSimplePrints);
-  RUN_TEST(tr, TestAssignments);
-  RUN_TEST(tr, TestArithmetics);
-  RUN_TEST(tr, TestVariablesArePointers);
+  //RUN_TEST(tr, TestSimplePrints);
+  //RUN_TEST(tr, TestAssignments);
+  //RUN_TEST(tr, TestArithmetics);
+  //RUN_TEST(tr, TestVariablesArePointers);
 }

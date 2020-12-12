@@ -61,6 +61,11 @@ public:
   const Method* GetMethod(const std::string& name) const;
   const std::string& GetName() const;
   void Print(std::ostream& os) override;
+
+private:
+  std::string name_;
+  std::unordered_map<std::string, Method> methods_;
+  const Class* parent_;
 };
 
 class ClassInstance : public Object {
@@ -74,6 +79,10 @@ public:
 
   Closure& Fields();
   const Closure& Fields() const;
+
+private:
+  const Class& cls_;
+  Closure fields_;
 };
 
 void RunObjectsTests(TestRunner& test_runner);

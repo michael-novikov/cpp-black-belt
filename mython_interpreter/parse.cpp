@@ -1,6 +1,6 @@
 #include "parse.h"
 #include "statement.h"
-#include "lexer.h" // Добавьте в проект вашу реализацию лексического анализатора языка Mython
+#include "lexer.h"
 #include "comparators.h"
 
 #include <algorithm>

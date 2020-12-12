@@ -40,6 +40,7 @@ ObjectHolder::operator bool() const {
 }
 
 bool IsTrue(ObjectHolder object) {
+  return static_cast<bool>(object);
 }
 
 }

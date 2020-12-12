@@ -112,6 +112,7 @@ void TestFieldAssignment() {
   ASSERT_OBJECT_VALUE_EQUAL(object.Fields().at("x"), 57);
 
   assign_y.Execute(closure);
+  ASSERT(object.Fields().find("y") != object.Fields().end());
   FieldAssignment assign_yz(
     VariableValue{vector<string>{"self", "y"}}, "z", make_unique<StringConst>(
       Runtime::String("Hello, world! Hooray! Yes-yes!!!")
@@ -167,8 +168,8 @@ void TestStringify() {
 
   {
     auto result = Stringify(make_unique<NumericConst>(57)).Execute(empty);
-    ASSERT_OBJECT_VALUE_EQUAL(result, "57");
     ASSERT(result.TryAs<Runtime::String>());
+    ASSERT_OBJECT_VALUE_EQUAL(result, "57");
   }
   {
     auto result = Stringify(make_unique<StringConst>("Wazzup!"s)).Execute(empty);

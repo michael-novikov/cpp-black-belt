@@ -335,8 +335,10 @@ void RunLexerTests(TestRunner& tr) {
 
 } /* namespace Parse */
 
+#ifdef LEXER_EXECUTABLE
 int main() {
   TestRunner tr;
   Parse::RunLexerTests(tr);
   return 0;
 }
+#endif // LEXER_EXECUTABLE
