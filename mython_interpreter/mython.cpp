@@ -122,7 +122,7 @@ void TestAll() {
   Runtime::RunObjectsTests(tr);
   Ast::RunUnitTests(tr);
   Parse::RunLexerTests(tr);
-  //TestParseProgram(tr);
+  TestParseProgram(tr);
 
   //RUN_TEST(tr, TestSimplePrints);
   //RUN_TEST(tr, TestAssignments);

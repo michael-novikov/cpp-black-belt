@@ -188,6 +188,9 @@ IfElse::IfElse(
   std::unique_ptr<Statement> if_body,
   std::unique_ptr<Statement> else_body
 )
+  : condition(move(condition))
+  , if_body(move(if_body))
+  , else_body(move(else_body))
 {
 }
 
@@ -200,20 +203,36 @@ ObjectHolder IfElse::Execute(Runtime::Closure& closure) {
 }
 
 ObjectHolder Or::Execute(Runtime::Closure& closure) {
+  return ObjectHolder::Own(
+    Runtime::Bool(Runtime::IsTrue(lhs->Execute(closure)) || Runtime::IsTrue(rhs->Execute(closure)))
+  );
 }
 
 ObjectHolder And::Execute(Runtime::Closure& closure) {
+  return ObjectHolder::Own(
+    Runtime::Bool(Runtime::IsTrue(lhs->Execute(closure)) && Runtime::IsTrue(rhs->Execute(closure)))
+  );
 }
 
 ObjectHolder Not::Execute(Runtime::Closure& closure) {
+  return ObjectHolder::Own(
+    Runtime::Bool(!Runtime::IsTrue(argument->Execute(closure)))
+  );
 }
 
 Comparison::Comparison(
   Comparator cmp, unique_ptr<Statement> lhs, unique_ptr<Statement> rhs
-) {
+)
+  : comparator(move(cmp))
+  , left(move(lhs))
+  , right(move(rhs))
+{
 }
 
 ObjectHolder Comparison::Execute(Runtime::Closure& closure) {
+  return ObjectHolder::Own(
+    Runtime::Bool(comparator(left->Execute(closure), right->Execute(closure)))
+  );
 }
 
 NewInstance::NewInstance(

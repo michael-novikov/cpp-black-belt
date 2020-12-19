@@ -40,7 +40,10 @@ ObjectHolder::operator bool() const {
 }
 
 bool IsTrue(ObjectHolder object) {
-  return static_cast<bool>(object);
+  if (auto bool_value = object.TryAs<Bool>(); bool_value) {
+    return bool_value->GetValue();
+  }
+  return false;
 }
 
 }
