@@ -28,13 +28,13 @@ set(sources
   ../lexer/lexer.cpp
   ../lexer/lexer_test.cpp
   ../lexer/string_utils.cpp
-  #comparators.cpp
+  comparators.cpp
   object.cpp
   object_holder.cpp
   object_holder_test.cpp
   object_test.cpp
-  #parse.cpp
-  #parse_test.cpp
+  parse.cpp
+  parse_test.cpp
   statement.cpp
   statement_test.cpp
   mython.cpp

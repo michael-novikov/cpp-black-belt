@@ -37,18 +37,16 @@ VariableValue::VariableValue(std::vector<std::string> dotted_ids)
 }
 
 ObjectHolder VariableValue::Execute(Closure& closure) {
-  auto name = accumulate(
-    next(begin(dotted_ids)), end(dotted_ids),
-    dotted_ids.front(),
-    [](string dotted, string id) { return move(dotted) + "." + move(id); }
-  );
-
-  if (!closure.count(name))
-  {
-    throw std::runtime_error("unknown variable " + name);
+  const auto& var_name = dotted_ids.front();
+  if (!closure.count(var_name)) {
+    throw std::runtime_error("unknown variable " + var_name);
   }
 
-  return closure.at(name);
+  return accumulate(
+    next(begin(dotted_ids)), end(dotted_ids),
+    closure.at(var_name),
+    [](ObjectHolder parent, const string& name) { return parent.TryAs<Runtime::ClassInstance>()->Fields().at(name); }
+  );
 }
 
 unique_ptr<Print> Print::Variable(std::string var) {
@@ -194,6 +192,11 @@ IfElse::IfElse(
 }
 
 ObjectHolder IfElse::Execute(Runtime::Closure& closure) {
+  if (Runtime::IsTrue(condition->Execute(closure))) {
+    return if_body->Execute(closure);
+  } else {
+    return else_body->Execute(closure);
+  }
 }
 
 ObjectHolder Or::Execute(Runtime::Closure& closure) {
@@ -225,16 +228,17 @@ NewInstance::NewInstance(const Runtime::Class& class_) : NewInstance(class_, {})
 }
 
 ObjectHolder NewInstance::Execute(Runtime::Closure& closure) {
-  vector<ObjectHolder> init_args = {ObjectHolder::Own(Runtime::ClassInstance{class_})};
+  vector<ObjectHolder> init_args;
 
   transform(
     begin(args), end(args),
     back_inserter(init_args),
     [&closure](unique_ptr<Statement>& statement) { return statement->Execute(closure); }
   );
-  init_args.front().TryAs<Runtime::ClassInstance>()->Call("__init__", init_args);
 
-  return init_args.front();
+  auto instance = ObjectHolder::Own(Runtime::ClassInstance{class_});
+  instance.TryAs<Runtime::ClassInstance>()->Call("__init__", init_args);
+  return instance;
 }
 
 

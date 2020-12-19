@@ -2,7 +2,7 @@
 #include "object_holder.h"
 #include "statement.h"
 #include "lexer.h"
-//#include "parse.h"
+#include "parse.h"
 
 #include <test_runner.h>
 

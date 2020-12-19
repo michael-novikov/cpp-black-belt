@@ -64,7 +64,8 @@ public:
 
 private:
   std::string name_;
-  std::unordered_map<std::string, Method> methods_;
+  std::vector<Method> methods_impl_;
+  std::unordered_map<std::string, const Method*> methods_;
   const Class* parent_;
 };
 
