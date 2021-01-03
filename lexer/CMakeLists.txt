@@ -12,6 +12,8 @@ set(this_project lexer)
 set(utility ../utility)
 include_directories(${utility})
 
+add_definitions(-DLEXER_EXECUTABLE)
+
 project(${this_project} CXX)
 
 set(headers
