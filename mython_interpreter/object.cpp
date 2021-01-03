@@ -17,7 +17,7 @@ void ClassInstance::Print(std::ostream& os) {
   if (HasMethod("__str__", 0)) {
     Call("__str__", {})->Print(os);
   } else {
-    os << this;
+    os << "0x" << hex << reinterpret_cast<size_t>(this) << dec;
   }
 }
 

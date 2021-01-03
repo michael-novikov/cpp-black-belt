@@ -40,8 +40,20 @@ ObjectHolder::operator bool() const {
 }
 
 bool IsTrue(ObjectHolder object) {
-  if (auto bool_value = object.TryAs<Bool>(); bool_value) {
+  if (!object.Get()) {
+    return false;
+  }
+  if (auto bool_value = object.TryAs<Bool>()) {
     return bool_value->GetValue();
+  }
+  if (auto nubmer_value = object.TryAs<Number>()) {
+    return nubmer_value->GetValue() != 0;
+  }
+  if (auto string_value = object.TryAs<String>()) {
+    return string_value->GetValue() != "";
+  }
+  if (auto object_value = object.TryAs<ClassInstance>()) {
+    return true;
   }
   return false;
 }

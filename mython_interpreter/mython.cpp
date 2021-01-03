@@ -30,9 +30,7 @@ void RunMythonProgram(istream& input, ostream& output) {
 
 int main() {
   TestAll();
-
-  //RunMythonProgram(cin, cout);
-
+  RunMythonProgram(cin, cout);
   return 0;
 }
 
