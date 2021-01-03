@@ -91,12 +91,28 @@ void Print::SetOutputStream(ostream& output_stream) {
 MethodCall::MethodCall(
   std::unique_ptr<Statement> object
   , std::string method
-  , std::vector<std::unique_ptr<Statement>> args
-)
+  , std::vector<std::unique_ptr<Statement>> args)
+  : object_(move(object))
+  , method_(move(method))
+  , args_(move(args))
 {
 }
 
 ObjectHolder MethodCall::Execute(Closure& closure) {
+  auto executed_object = object_->Execute(closure);
+  auto class_instance = executed_object.TryAs<Runtime::ClassInstance>();
+  if (!class_instance) {
+    throw std::runtime_error("cannot run method of not class instance");
+  }
+
+  vector<ObjectHolder> actual_args;
+  transform(
+    begin(args_), end(args_),
+    back_inserter(actual_args),
+    [&closure](auto& argument) { return argument->Execute(closure); }
+  );
+
+  return class_instance->Call(method_, actual_args);
 }
 
 ObjectHolder Stringify::Execute(Closure& closure) {
@@ -129,30 +145,89 @@ ObjectHolder Add::Execute(Closure& closure) {
     return lhs_class_instance->Call("__add__", {move(rhs_res)});
   }
 
-  if (auto rhs_class_instance = rhs_res.TryAs<Runtime::ClassInstance>(); rhs_class_instance) {
-    return rhs_class_instance->Call("__add__", {move(lhs_res)});
-  }
-
   throw std::runtime_error("Wrong types for add operation");
 }
 
 ObjectHolder Sub::Execute(Closure& closure) {
+  auto lhs_res = lhs->Execute(closure);
+  auto rhs_res = rhs->Execute(closure);
+
+  {
+    auto lhs_numeric = lhs_res.TryAs<Runtime::Number>();
+    auto rhs_numeric = rhs_res.TryAs<Runtime::Number>();
+    if (lhs_numeric && rhs_numeric) {
+      return ObjectHolder::Own(Runtime::Number{lhs_numeric->GetValue() - rhs_numeric->GetValue()});
+    }
+  }
+
+  if (auto lhs_class_instance = lhs_res.TryAs<Runtime::ClassInstance>(); lhs_class_instance) {
+    return lhs_class_instance->Call("__sub__", {move(rhs_res)});
+  }
+
+  throw std::runtime_error("Wrong types for sub operation");
 }
 
 ObjectHolder Mult::Execute(Runtime::Closure& closure) {
+  auto lhs_res = lhs->Execute(closure);
+  auto rhs_res = rhs->Execute(closure);
+
+  {
+    auto lhs_numeric = lhs_res.TryAs<Runtime::Number>();
+    auto rhs_numeric = rhs_res.TryAs<Runtime::Number>();
+    if (lhs_numeric && rhs_numeric) {
+      return ObjectHolder::Own(Runtime::Number{lhs_numeric->GetValue() * rhs_numeric->GetValue()});
+    }
+  }
+
+  if (auto lhs_class_instance = lhs_res.TryAs<Runtime::ClassInstance>(); lhs_class_instance) {
+    return lhs_class_instance->Call("__mult__", {move(rhs_res)});
+  }
+
+  throw std::runtime_error("Wrong types for mult operation");
 }
 
 ObjectHolder Div::Execute(Runtime::Closure& closure) {
+  auto lhs_res = lhs->Execute(closure);
+  auto rhs_res = rhs->Execute(closure);
+
+  {
+    auto lhs_numeric = lhs_res.TryAs<Runtime::Number>();
+    auto rhs_numeric = rhs_res.TryAs<Runtime::Number>();
+
+    if (lhs_numeric && rhs_numeric) {
+      if (rhs_numeric->GetValue() == 0) {
+        throw std::invalid_argument("division by zero");
+      }
+      return ObjectHolder::Own(Runtime::Number{lhs_numeric->GetValue() / rhs_numeric->GetValue()});
+    }
+  }
+
+  if (auto lhs_class_instance = lhs_res.TryAs<Runtime::ClassInstance>(); lhs_class_instance) {
+    return lhs_class_instance->Call("__div__", {move(rhs_res)});
+  }
+
+  throw std::runtime_error("Wrong types for div operation");
 }
 
 ObjectHolder Compound::Execute(Closure& closure) {
   for (auto& statement : statements) {
-    statement->Execute(closure);
+    auto ret = statement->Execute(closure);
+
+    bool check_for_return = false
+      || dynamic_cast<Return*>(statement.get())
+      || dynamic_cast<IfElse*>(statement.get())
+      || dynamic_cast<Compound*>(statement.get());
+
+    if (check_for_return && ret.Get()) {
+      return ret;
+    }
   }
-  return None().Execute(closure);
+  return ObjectHolder::None();
+;
 }
 
 ObjectHolder Return::Execute(Closure& closure) {
+  return statement->Execute(closure);
 }
 
 ClassDefinition::ClassDefinition(ObjectHolder class_)
@@ -162,6 +237,11 @@ ClassDefinition::ClassDefinition(ObjectHolder class_)
 }
 
 ObjectHolder ClassDefinition::Execute(Runtime::Closure& closure) {
+  if (closure.count(class_name)) {
+    throw std::runtime_error("redefinition of " + class_name);
+  }
+  closure[class_name] = cls;
+  return ObjectHolder::None();
 }
 
 FieldAssignment::FieldAssignment(
@@ -197,9 +277,10 @@ IfElse::IfElse(
 ObjectHolder IfElse::Execute(Runtime::Closure& closure) {
   if (Runtime::IsTrue(condition->Execute(closure))) {
     return if_body->Execute(closure);
-  } else {
+  } else if (else_body) {
     return else_body->Execute(closure);
   }
+  return ObjectHolder::None();
 }
 
 ObjectHolder Or::Execute(Runtime::Closure& closure) {

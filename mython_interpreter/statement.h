@@ -82,9 +82,9 @@ private:
 };
 
 struct MethodCall : Statement {
-  std::unique_ptr<Statement> object;
-  std::string method;
-  std::vector<std::unique_ptr<Statement>> args;
+  std::unique_ptr<Statement> object_;
+  std::string method_;
+  std::vector<std::unique_ptr<Statement>> args_;
 
   MethodCall(
     std::unique_ptr<Statement> object,

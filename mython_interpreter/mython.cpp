@@ -19,19 +19,19 @@ using namespace std;
 void TestAll();
 
 void RunMythonProgram(istream& input, ostream& output) {
-//  Ast::Print::SetOutputStream(output);
-//
-//  Parse::Lexer lexer(input);
-//  auto program = ParseProgram(lexer);
-//
-//  Runtime::Closure closure;
-//  program->Execute(closure);
+  Ast::Print::SetOutputStream(output);
+
+  Parse::Lexer lexer(input);
+  auto program = ParseProgram(lexer);
+
+  Runtime::Closure closure;
+  program->Execute(closure);
 }
 
 int main() {
   TestAll();
 
-  RunMythonProgram(cin, cout);
+  //RunMythonProgram(cin, cout);
 
   return 0;
 }
@@ -124,8 +124,8 @@ void TestAll() {
   Parse::RunLexerTests(tr);
   TestParseProgram(tr);
 
-  //RUN_TEST(tr, TestSimplePrints);
-  //RUN_TEST(tr, TestAssignments);
-  //RUN_TEST(tr, TestArithmetics);
-  //RUN_TEST(tr, TestVariablesArePointers);
+  RUN_TEST(tr, TestSimplePrints);
+  RUN_TEST(tr, TestAssignments);
+  RUN_TEST(tr, TestArithmetics);
+  RUN_TEST(tr, TestVariablesArePointers);
 }

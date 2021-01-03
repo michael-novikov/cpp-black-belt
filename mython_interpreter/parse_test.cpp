@@ -255,8 +255,6 @@ print r, c, t1, t2
   ASSERT_EQUAL(os.str(), "Rect(10x20) Circle(52) Triangle(3, 4, 5) Wrong triangle\n");
 }
 
-
-
 }
 
 void TestParseProgram(TestRunner& tr) {

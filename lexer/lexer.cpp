@@ -158,8 +158,12 @@ std::optional<Token> Lexer::ParseNumber() {
 
 std::optional<Token> Lexer::ParseKeyword() {
   string_view keyword_token;
-  tie(keyword_token, current_) = GetKnownPattern(current_, keywords);
-  if (!keyword_token.empty()) {
+  string_view id_token;
+  string_view rest;
+  tie(id_token, rest) = GetId(current_);
+  tie(keyword_token, id_token) = GetKnownPattern(id_token, keywords);
+  if (!keyword_token.empty() && id_token.empty()) {
+    current_ = rest;
     return keywords.at(string{keyword_token});
   }
   return nullopt;
