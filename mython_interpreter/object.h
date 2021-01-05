@@ -67,6 +67,7 @@ private:
   std::vector<Method> methods_impl_;
   std::unordered_map<std::string, const Method*> methods_;
   const Class* parent_;
+  void AddParentMethods(const Class* parent);
 };
 
 class ClassInstance : public Object {
