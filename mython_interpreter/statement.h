@@ -77,7 +77,7 @@ public:
   static void SetOutputStream(std::ostream& output_stream);
 
 private:
-  std::vector<std::unique_ptr<Statement>> args;
+  std::vector<std::unique_ptr<Statement>> args_;
   static std::ostream* output;
 };
 

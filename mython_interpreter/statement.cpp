@@ -50,35 +50,36 @@ ObjectHolder VariableValue::Execute(Closure& closure) {
 }
 
 unique_ptr<Print> Print::Variable(std::string var) {
-  return make_unique<Print>(make_unique<VariableValue>(var));
+  return make_unique<Print>(make_unique<VariableValue>(move(var)));
 }
 
 Print::Print(unique_ptr<Statement> argument)
+  : args_()
 {
-  args.push_back(move(argument));
+  args_.push_back(move(argument));
 }
 
 Print::Print(vector<unique_ptr<Statement>> args)
-  : args(move(args))
+  : args_(move(args))
 {
 }
 
 ObjectHolder Print::Execute(Closure& closure) {
   bool first{true};
-  for (auto& argument : args) {
+  for (auto& argument : args_) {
     if (first) {
       first = false;
     } else {
-      *output << ' ';
+      *output << " ";
     }
 
-    if (auto object = argument->Execute(closure).Get(); object) {
+    if (auto object = argument->Execute(closure)) {
       object->Print(*output);
     } else {
       *output << "None";
     }
   }
-  *output << '\n';
+  *output << endl;
   return ObjectHolder::None();
 }
 

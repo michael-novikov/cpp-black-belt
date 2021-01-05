@@ -3,6 +3,7 @@
 #include "statement.h"
 
 #include <algorithm>
+#include <iostream>
 #include <iterator>
 #include <memory>
 #include <sstream>
@@ -23,7 +24,18 @@ void ClassInstance::Print(std::ostream& os) {
 
 bool ClassInstance::HasMethod(const std::string& method, size_t argument_count) const {
   auto* class_method = cls_.GetMethod(method);
-  return class_method && class_method->formal_params.size() == argument_count;
+  if (!class_method) {
+    return false;
+  }
+
+  if (class_method->formal_params.size() != argument_count) {
+    cerr << "There's a class method " << cls_.GetName() << "." << method
+      << " but it has " << class_method->formal_params.size() << "instead of " << argument_count
+      << endl;
+    return false;
+  }
+
+  return true;
 }
 
 const Closure& ClassInstance::Fields() const {
@@ -41,7 +53,11 @@ ClassInstance::ClassInstance(const Class& cls)
 
 ObjectHolder ClassInstance::Call(const std::string& method, const std::vector<ObjectHolder>& actual_args) {
   if (!HasMethod(method, actual_args.size())) {
-    throw std::runtime_error("Class " + cls_.GetName() + " doesn't have method " + method);
+    ostringstream error_message;
+    error_message << "Method " << cls_.GetName() << "." << method
+      << " which takes " << actual_args.size() << " argument(s)"
+      << " doesn't exists";
+    throw std::runtime_error(error_message.str());
   }
 
   auto& instance_method = *cls_.GetMethod(method);
@@ -57,15 +73,20 @@ ObjectHolder ClassInstance::Call(const std::string& method, const std::vector<Ob
   return instance_method.body->Execute(argument_closure);
 }
 
+void Class::AddParentMethods(const Class* parent) {
+  if (parent) {
+    this->AddParentMethods(parent->parent_);
+    for (const auto& method : parent->methods_impl_) {
+      methods_[method.name] = &method;
+    }
+  }
+}
+
 Class::Class(std::string name, std::vector<Method> methods, const Class* parent)
   : name_(move(name))
   , parent_(parent)
 {
-  if (parent_) {
-    for (const auto& method : parent_->methods_impl_) {
-      methods_[method.name] = &method;
-    }
-  }
+  AddParentMethods(parent_);
 
   methods_impl_.reserve(methods.size() + 1);
   for (auto&& method : methods) {
