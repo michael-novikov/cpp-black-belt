@@ -1,6 +1,12 @@
 #include "test_runner.h"
+#include <utility>
 
 // ApplyToMany(f, 1, 2, 3) означает f(1); f(2); f(3);
+
+template <typename F, typename... Args>
+void ApplyToMany(F f, Args&&... args) {
+  (f(std::forward<Args>(args)), ...);
+}
 
 void TestSum() {
   int x;
