@@ -16,6 +16,9 @@ public:
   C() {
     ++created;
   }
+  C(int x) {
+    ++created;
+  }
   C(const C& other) {
     ++created;
   }
@@ -74,10 +77,116 @@ void TestPushBack() {
   ASSERT(C::deleted == 4);
 }
 
+void TestEmplaceBack() {
+  {
+    C::Reset();
+    Vector<C> v;
+    v.EmplaceBack(42);
+    ASSERT(C::created == 1 && C::assigned == 0 && C::deleted == 0);
+
+    v.EmplaceBack(41);  // reallocation
+    ASSERT(C::created == 3 && C::assigned == 0 && C::deleted == 1);
+  }
+  ASSERT(C::deleted == 3);
+}
+
+void TestCopyAssignment() {
+  {
+    C c;
+    C::Reset();
+
+    Vector<C> v1;
+    v1.Reserve(10);
+    v1.PushBack(c);
+
+    ASSERT(C::created == 1 && C::assigned == 0 && C::deleted == 0);
+
+    Vector<C> v2;
+    v2.PushBack(c);
+    v2.PushBack(c);
+
+    ASSERT(C::created == 4 && C::assigned == 0 && C::deleted == 1);
+
+    v1 = v2;
+
+    ASSERT(C::created == 5 && C::assigned == 1 && C::deleted == 1);
+  }
+  {
+    C c;
+    C::Reset();
+
+    Vector<C> v1;
+    v1.Reserve(10);
+    v1.PushBack(c);
+
+    ASSERT(C::created == 1 && C::assigned == 0 && C::deleted == 0);
+
+    Vector<C> v2;
+    v2.Reserve(10);
+    v2.PushBack(c);
+    v2.PushBack(c);
+
+    ASSERT(C::created == 3 && C::assigned == 0 && C::deleted == 0);
+
+    C::Reset();
+
+    v2 = v1;
+
+    ASSERT(C::created == 0 && C::assigned == 1 && C::deleted == 1);
+  }
+  {
+    C c;
+    C::Reset();
+
+    Vector<C> v1;
+    v1.Reserve(10);
+
+    ASSERT(C::created == 0 && C::assigned == 0 && C::deleted == 0);
+
+    Vector<C> v2;
+    v2.PushBack(c);
+    v2.PushBack(c);
+
+    ASSERT(C::created == 3 && C::assigned == 0 && C::deleted == 1);
+
+    C::Reset();
+
+    v2 = v1;
+
+    ASSERT(C::created == 0 && C::assigned == 0 && C::deleted == 2);
+  }
+  {
+    C c;
+    C::Reset();
+
+    Vector<C> v1;
+    v1.Reserve(999);
+    v1.PushBack(c);
+
+    ASSERT(C::created == 1 && C::assigned == 0 && C::deleted == 0);
+
+    C::Reset();
+
+    Vector<C> v2;
+    v2.PushBack(c);
+    v2.PushBack(c);
+
+    ASSERT(C::created == 3 && C::assigned == 0 && C::deleted == 1);
+
+    C::Reset();
+
+    v2 = v1;
+
+    ASSERT(C::created == 0 && C::assigned == 1 && C::deleted == 1);
+  }
+}
+
 int main() {
   TestRunner tr;
   RUN_TEST(tr, TestInit);
   RUN_TEST(tr, TestAssign);
   RUN_TEST(tr, TestPushBack);
+  RUN_TEST(tr, TestEmplaceBack);
+  RUN_TEST(tr, TestCopyAssignment);
   return 0;
 }
