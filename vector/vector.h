@@ -1,6 +1,9 @@
-#pragma once
+#ifndef MY_VECTOR
+#define MY_VECTOR
 
+#include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <utility>
 #include <memory>
 
@@ -121,6 +124,26 @@ public:
 
   const T& operator[](size_t i) const;
   T& operator[](size_t i);
+
+  using iterator = T*;
+  using const_iterator = const T*;
+
+  iterator begin() noexcept;
+  iterator end() noexcept;
+
+  const_iterator begin() const noexcept;
+  const_iterator end() const noexcept;
+
+  const_iterator cbegin() const noexcept;
+  const_iterator cend() const noexcept;
+
+  iterator Insert(const_iterator pos, const T& elem);
+  iterator Insert(const_iterator pos, T&& elem);
+
+  template <typename ... Args>
+  iterator Emplace(const_iterator it, Args&&... args);
+
+  iterator Erase(const_iterator it);
 
 private:
   RawMemory<T> data_;
@@ -262,3 +285,114 @@ void Vector<T>::Swap(Vector<T>& other) {
   std::swap(size_, other.size_);
 }
 
+template <typename T>
+typename Vector<T>::iterator Vector<T>::begin() noexcept {
+  return data_.raw_;
+}
+
+template <typename T>
+typename Vector<T>::iterator Vector<T>::end() noexcept {
+  return data_ + size_;
+}
+
+template <typename T>
+typename Vector<T>::const_iterator Vector<T>::begin() const noexcept {
+  return data_.raw_;
+}
+
+template <typename T>
+typename Vector<T>::const_iterator Vector<T>::end() const noexcept {
+  return data_ + size_;
+}
+
+template <typename T>
+typename Vector<T>::const_iterator Vector<T>::cbegin() const noexcept {
+  return data_.raw_;
+}
+
+template <typename T>
+typename Vector<T>::const_iterator Vector<T>::cend() const noexcept {
+  return data_ + size_;
+}
+
+template <typename T>
+typename Vector<T>::iterator Vector<T>::Insert(const_iterator pos, const T& elem) {
+  auto idx = pos - cbegin();
+  if (size_ == data_.capacity_) {
+    Reserve(size_ == 0 ? 1 : 2 * size_);
+  }
+
+  auto p = begin() + idx;
+  if (p == end()) {
+    new (p) T(elem);
+  } else {
+    T new_elem{elem};
+    std::uninitialized_move_n(data_ + size_ - 1, 1, data_ + size_);
+    std::move_backward(p, p + 1, data_ + size_);
+    *p = std::move(new_elem);
+  }
+
+  ++size_;
+  return p;
+}
+
+template <typename T>
+typename Vector<T>::iterator Vector<T>::Insert(const_iterator pos, T&& elem) {
+  auto idx = pos - cbegin();
+  if (size_ == data_.capacity_) {
+    Reserve(size_ == 0 ? 1 : 2 * size_);
+  }
+
+  auto p = begin() + idx;
+  if (p == end()) {
+    new (p) T(std::move(elem));
+  } else {
+    std::uninitialized_move_n(data_ + size_ - 1, 1, data_ + size_);
+    std::move_backward(p, p + 1, data_ + size_);
+    *p = std::move(elem);
+  }
+
+  ++size_;
+  return p;
+}
+
+template <typename T>
+template <typename ... Args>
+typename Vector<T>::iterator Vector<T>::Emplace(const_iterator it, Args&&... args) {
+  auto idx = it - cbegin();
+  if (size_ == data_.capacity_) {
+    Reserve(size_ == 0 ? 1 : 2 * size_);
+  }
+  auto p = begin() + idx;
+
+  if (idx == size_) {
+    new (p) T(std::forward<Args>(args)...);
+  } else {
+    T new_elem(std::forward<Args>(args)...);
+    new (data_ + size_) T(std::move(data_[size_ - 1]));
+    std::move_backward(p, p + 1, data_ + size_);
+    *p = std::move(new_elem);
+  }
+
+  ++size_;
+  return p;
+}
+
+template <typename T>
+typename Vector<T>::iterator Vector<T>::Erase(const_iterator it) {
+  if (it == end()) {
+    return end();
+  }
+
+  iterator res = begin() + (it - cbegin());
+  T tmp = std::move(*res);
+  for (auto i = res; i != end() - 1; ++i) {
+    *i = std::move(*(i + 1));
+  }
+  std::destroy_at(end() - 1);
+
+  --size_;
+  return res;
+}
+
+#endif // MY_VECTOR
